@@ -1,0 +1,10 @@
+.container {
+    height: 100%;
+    margin: 0 auto;
+    background-color: #ebfafc;
+
+}
+
+button {
+    margin: 10px;
+}

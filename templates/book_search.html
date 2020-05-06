@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+    <h2>Hello! Enter book query below</h2>
+     <div class="form-group">
+        <label for="exampleFormControlInput1"></label>
+        <input type="text" class="form-control" id="exampleFormControlInput1" placeholder="author">
+      </div>
+     <div class="form-group">
+        <label for="exampleFormControlInput1"></label>
+        <input type="text" class="form-control" id="exampleFormControlInput1" placeholder="title">
+      </div>
+         <div class="form-group">
+        <label for="exampleFormControlInput1"></label>
+        <input type="text" class="form-control" id="exampleFormControlInput1" placeholder="ISBN">
+      </div>
+    <div class="search_buttons">
+        <button type="submit" class="btn btn-primary">Search</button>
+    </div>
+</div>
+{% endblock %}
