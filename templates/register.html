@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="container">
-    <h2>Hello! Please register to create an account</h2>
+    <h2>{{ message }} Please register to create an account</h2>
     <form action="/register" method="POST">
         <div class="form-group">
         <label for="first_name">First Name</label>
