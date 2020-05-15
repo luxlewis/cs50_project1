@@ -1,21 +1,23 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="container">
-    <h2>Hello! Enter book query below</h2>
-     <div class="form-group">
-        <label for="exampleFormControlInput1"></label>
-        <input type="text" class="form-control" id="exampleFormControlInput1" placeholder="author">
-      </div>
-     <div class="form-group">
-        <label for="exampleFormControlInput1"></label>
-        <input type="text" class="form-control" id="exampleFormControlInput1" placeholder="title">
-      </div>
+    <h2>Hi, {{session.username.capitalize()}}! Enter query below:</h2>
+    <form action="{{ url_for('book_search') }}" method="POST">
+        <div class="form-group">
+            <label for="author"></label>
+            <input name="author" type="text" class="form-control" id="author" placeholder="author">
+          </div>
          <div class="form-group">
-        <label for="exampleFormControlInput1"></label>
-        <input type="text" class="form-control" id="exampleFormControlInput1" placeholder="ISBN">
-      </div>
-    <div class="search_buttons">
-        <button type="submit" class="btn btn-primary">Search</button>
-    </div>
+            <label for="title"></label>
+            <input name="title" type="text" class="form-control" id="title" placeholder="title">
+          </div>
+             <div class="form-group">
+            <label for="isbn"></label>
+            <input name="isbn" type="text" class="form-control" id="isbn" placeholder="ISBN">
+          </div>
+        <div class="search_buttons">
+            <button type="submit" class="btn btn-primary">Search</button>
+        </div>
+    </form>
 </div>
 {% endblock %}
