@@ -1,7 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="container">
-    <h2>{{message}} Welcome to Biblio-files! Please login below to begin your search:</h2>
+    <h3>Welcome to Biblio-files!</h3>
+    <h3>{{message}}</h3>
      <form action="{{ url_for('login') }}" method="POST">
         <div class="form-group">
             <label for="username">Username</label>
@@ -9,7 +10,7 @@
         </div>
       <div class="form-group">
         <label for="password">Password</label>
-        <input name="password" type="password" class="form-control" id="password" placeholder="Create password">
+        <input name="password" type="password" class="form-control" id="password" placeholder="Enter password">
       </div>
 
       <button type="submit" class="btn btn-primary">Submit</button>

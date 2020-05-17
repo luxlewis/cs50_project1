@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="container">
-    <h2>Hi, {{session.username.capitalize()}}! Enter query below:</h2>
+    <h4>Hi, {{session.username.capitalize()}}! Enter query below:</h4>
     <form action="{{ url_for('book_search') }}" method="POST">
         <div class="form-group">
             <label for="author"></label>

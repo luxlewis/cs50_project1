@@ -5,10 +5,7 @@ from flask import Flask, session, render_template, request, redirect, url_for, j
 from flask_session import Session
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
-from argon2 import PasswordHasher
-import io
-import urllib
-from PIL import Image
+
 
 
 app = Flask(__name__)
@@ -43,8 +40,7 @@ def register():
     email = request.form.get("email")
     username = request.form.get("username")
     password = request.form.get("password")
-    ph = PasswordHasher()
-    hash = ph.hash(password)
+
 
     email_already_exists = db.execute("SELECT * FROM users WHERE email = :email", {"email": email}).rowcount > 0
     if email_already_exists:
@@ -86,7 +82,7 @@ def login():
 
             return redirect(url_for("book_search"))
         else:
-            return render_template("login.html", message="Sorry, check username/password is correct and try again.\n")
+            return render_template("login.html", message="Incorrect username or password please try again.\n")
 
 @app.route("/logout")
 def logout():
@@ -119,14 +115,15 @@ def get_search_results():
         return render_template("search_results.html", results=results)
 
     else:
-        return render_template("book_search.html")
+        return render_template("error.html", message="Hmm, no matches...please search again.")
+
 
 
 @app.route("/api/<isbn>")
 def book_api(isbn):
     results = db.execute("SELECT * FROM books WHERE isbn = :isbn", {"isbn": isbn}).fetchone()
     if results is None:
-        return render_template("book_search.htm")
+        return render_template("error.html", message="404 Error Not Found")
     return jsonify({
         "Title": results.title,
         "Author": results.author,
@@ -138,6 +135,8 @@ db.commit()
 @app.route("/book_search/<isbn>")
 def book_page(isbn):
     results = db.execute("SELECT * FROM books WHERE isbn = :isbn", {"isbn": isbn}).fetchone()
+    reviews = db.execute("SELECT book_rating, book_rating_text, username FROM user_reviews WHERE isbn = :isbn", {"isbn": isbn}).fetchall()
+    print(reviews)
     if results is None:
         return render_template("search_results.html")
     res = requests.get("https://www.goodreads.com/book/review_counts.json",
@@ -147,27 +146,44 @@ def book_page(isbn):
     book_option = data['books']
     average_rating = book_option[0]['average_rating']
     ratings_count = book_option[0]['ratings_count']
-    return render_template("book_page.html", results=results, average_rating=average_rating,
+    return render_template("book_page.html",  reviews=reviews, results=results, average_rating=average_rating,
                            ratings_count=ratings_count, isbn=isbn)
 
 
 db.commit()
 
 
-# @app.route("/book_search/review", methods=['GET','POST'])
-# def leave_review():
-#     return render_template("review.html")
-#
-# @app.route("/book_search/review", methods=['GET', 'POST'])
-# def submit_review():
-#     if request.method == 'POST':
-#         book_rating = request.form.get("book_rating")
-#         book_rating_text = request.form.get("book_review_data")
-#         db.execute("INSERT INTO book_reviews (book_rating, book_rating_text, isbn) VALUES (:book_rating :book_rating_text, :isbn)",
-#                    {"book_rating": book_rating, "book_rating_text": book_rating_text, "isbn": isbn})
-#
-#         return render_template("book_page.html", book_rating=book_rating, book_rating_text=book_rating_text, isbn=isbn, results=results, ratings_count=ratings_count, average_rating=average_rating)
-#
+@app.route("/book_search/<isbn>", methods=['POST'])
+def submit_review(isbn):
+    username = session.get("username")
+    too_many_reviews = db.execute("SELECT * FROM user_reviews WHERE isbn = :isbn AND username = :username",
+                                  {"isbn": isbn, "username": username}).fetchone()
+    if request.method == 'POST' and too_many_reviews is None:
+        book_rating = request.form.get("book_rating")
+        username = session.get("username")
+        book_rating_text = request.form.get("book_rating_text")
+
+        book_id = db.execute("SELECT id from books WHERE isbn = :isbn", {"isbn": isbn}).fetchone()[0]
+
+        db.execute("INSERT INTO user_reviews (isbn, book_rating, book_rating_text, book_id, username) VALUES (:isbn, :book_rating, :book_rating_text, :book_id, :username)",
+                   {"book_rating": book_rating, "book_rating_text": book_rating_text, "isbn": isbn, "book_id": book_id, "username": username})
+        reviews = db.execute("SELECT * FROM user_reviews WHERE isbn = :isbn", {"isbn": isbn}).fetchall()
+
+        results = db.execute("SELECT * FROM books WHERE isbn = :isbn", {"isbn": isbn}).fetchone()
+        if results is None:
+            return render_template("search_results.html")
+        res = requests.get("https://www.goodreads.com/book/review_counts.json",
+                           params={"key": "OxVIu40NJp0S4DBt18tGtA", "isbns": isbn})
+        data = res.json()
+        # pprint(data)
+        book_option = data['books']
+        average_rating = book_option[0]['average_rating']
+        ratings_count = book_option[0]['ratings_count']
+    else:
+        return render_template("error.html", message="you've already reviewed that book")
+    db.commit()
+    return render_template("book_page.html", book_rating=book_rating, book_rating_text=book_rating_text, isbn=isbn, ratings_count=ratings_count, results=results, average_rating=average_rating, reviews=reviews)
+
 
 if __name__ == "__main__":
     app.run()
